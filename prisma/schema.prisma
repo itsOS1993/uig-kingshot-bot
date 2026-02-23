@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id            Int      @id @default(autoincrement())
+  discordId     String   @unique
+  gameId        String   @unique
+  username      String
+  profileImage  String?
+  level         Int      @default(1)
+  power         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

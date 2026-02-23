@@ -28,3 +28,4 @@ build/
 
 # Railway
 .railway/
+/src/generated/prisma
