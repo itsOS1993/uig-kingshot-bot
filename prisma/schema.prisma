@@ -19,6 +19,7 @@ model Player {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   powerHistory PowerHistory[]
+  lastLevelCheck DateTime?
 }
 
 model GuildConfig {
