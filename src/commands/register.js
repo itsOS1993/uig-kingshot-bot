@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const prisma = require('../database/prisma');
 const { t } = require('../i18n');
 const { createEmbed } = require('../utils/embed');
+const { fetchPlayer } = require('../services/kingshotApi');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -65,12 +66,27 @@ module.exports = {
         });
       }
 
+      const apiData = await fetchPlayer(gameId);
+
+      if (!apiData) {
+        return interaction.reply({
+          embeds: [
+            createEmbed({
+              description: "Player not found or API error.",
+              color: 0xed4245
+            })
+          ],
+          ephemeral: true
+        });
+      }
+
       await prisma.player.create({
         data: {
           discordId,
           gameId,
-          username: "Unknown",
-          level: 1,
+          username: apiData.username,
+          level: apiData.level,
+          profileImage: apiData.profileImage,
           language
         }
       });
