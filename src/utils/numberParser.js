@@ -1,22 +1,22 @@
 function parsePower(input) {
   if (!input) return null;
 
-  let value = input.toUpperCase().replace(/,/g, '').trim();
+  const cleaned = input.replace(/[.,\s]/g, '').toUpperCase();
 
-  if (value.endsWith("K")) {
-    return parseFloat(value) * 1_000;
+  if (cleaned.endsWith("K")) {
+    return parseFloat(cleaned) * 1_000;
   }
 
-  if (value.endsWith("M")) {
-    return parseFloat(value) * 1_000_000;
+  if (cleaned.endsWith("M")) {
+    return parseFloat(cleaned) * 1_000_000;
   }
 
-  if (value.endsWith("B")) {
-    return parseFloat(value) * 1_000_000_000;
+  if (cleaned.endsWith("B")) {
+    return parseFloat(cleaned) * 1_000_000_000;
   }
 
-  const number = Number(value);
-  return isNaN(number) ? null : number;
+  const number = Number(cleaned);
+  return Number.isNaN(number) ? null : number;
 }
 
 function formatPower(num) {

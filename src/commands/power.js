@@ -1,17 +1,17 @@
 const { SlashCommandBuilder } = require('discord.js');
 const prisma = require('../database/prisma');
-const { parsePower, formatPower } = require('../utils/numberParser');
+const amount = interaction.options.getInteger('amount');
 const { createEmbed } = require('../utils/embed');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('power')
     .setDescription('Add power')
-    .addStringOption(option =>
-      option.setName('amount')
-        .setDescription('Example: 1000000, 1M, 500K')
-        .setRequired(true)
-    )
+    .addIntegerOption(option =>
+        option.setName('amount')
+            .setDescription('Enter full number (example: 10000000)')
+            .setRequired(true)
+        )
     .addUserOption(option =>
       option.setName('user')
         .setDescription('Target user (R4 only)')
