@@ -5,13 +5,8 @@ const { createEmbed } = require('../utils/embed');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('register')
-    .setDescription('Register with your Kingshot Game ID')
-    .addStringOption(option =>
-      option.setName('gameid')
-        .setDescription('Your Kingshot Game ID')
-        .setRequired(true)
-    )
+    .setName('setlanguage')
+    .setDescription('Change your bot language')
     .addStringOption(option =>
       option.setName('language')
         .setDescription('Choose your language')
@@ -22,25 +17,23 @@ module.exports = {
           { name: 'Русский', value: 'ru' },
           { name: 'Türkçe', value: 'tr' }
         )
-        .setRequired(false)
+        .setRequired(true)
     ),
 
   async execute(interaction) {
     const discordId = interaction.user.id;
-    const gameId = interaction.options.getString('gameid');
-    const language = interaction.options.getString('language') || 'de';
+    const newLanguage = interaction.options.getString('language');
 
     try {
-      // Prüfen ob Discord User existiert
-      const existingUser = await prisma.player.findUnique({
+      const player = await prisma.player.findUnique({
         where: { discordId }
       });
 
-      if (existingUser) {
+      if (!player) {
         return interaction.reply({
           embeds: [
             createEmbed({
-              description: t(existingUser.language, "ALREADY_REGISTERED"),
+              description: t("en", "NOT_REGISTERED"),
               color: 0xfaa61a
             })
           ],
@@ -48,37 +41,15 @@ module.exports = {
         });
       }
 
-      // Prüfen ob GameID bereits registriert ist
-      const existingGameId = await prisma.player.findUnique({
-        where: { gameId }
-      });
-
-      if (existingGameId) {
-        return interaction.reply({
-          embeds: [
-            createEmbed({
-              description: t(language, "GAMEID_ALREADY_USED"),
-              color: 0xfaa61a
-            })
-          ],
-          ephemeral: true
-        });
-      }
-
-      await prisma.player.create({
-        data: {
-          discordId,
-          gameId,
-          username: "Unknown",
-          level: 1,
-          language
-        }
+      await prisma.player.update({
+        where: { discordId },
+        data: { language: newLanguage }
       });
 
       await interaction.reply({
         embeds: [
           createEmbed({
-            description: t(language, "REGISTER_SUCCESS"),
+            description: t(newLanguage, "LANGUAGE_UPDATED"),
             color: 0x57f287
           })
         ],
@@ -91,7 +62,7 @@ module.exports = {
       await interaction.reply({
         embeds: [
           createEmbed({
-            description: t(language, "REGISTER_ERROR"),
+            description: t("en", "GENERIC_ERROR"),
             color: 0xed4245
           })
         ],
