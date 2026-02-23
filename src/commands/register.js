@@ -1,28 +1,55 @@
 const { SlashCommandBuilder } = require('discord.js');
 const prisma = require('../database/prisma');
+const { t } = require('../i18n');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('register')
-    .setDescription('Registriere dich mit deiner Kingshot Game ID')
+    .setDescription('Register with your Kingshot Game ID')
     .addStringOption(option =>
       option.setName('gameid')
-        .setDescription('Deine Kingshot Game ID')
+        .setDescription('Your Kingshot Game ID')
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('language')
+        .setDescription('Choose your language')
+        .addChoices(
+          { name: 'Deutsch', value: 'de' },
+          { name: 'English', value: 'en' },
+          { name: 'Español', value: 'es' },
+          { name: 'Русский', value: 'ru' },
+          { name: 'Türkçe', value: 'tr' }
+        )
+        .setRequired(false)
     ),
 
   async execute(interaction) {
     const discordId = interaction.user.id;
     const gameId = interaction.options.getString('gameid');
+    const language = interaction.options.getString('language') || 'de';
 
     try {
-      const existing = await prisma.player.findUnique({
+      // Prüfen ob Discord User existiert
+      const existingUser = await prisma.player.findUnique({
         where: { discordId }
       });
 
-      if (existing) {
+      if (existingUser) {
         return interaction.reply({
-          content: 'Du bist bereits registriert.',
+          content: t(existingUser.language, "ALREADY_REGISTERED"),
+          ephemeral: true
+        });
+      }
+
+      // Prüfen ob GameID bereits registriert ist
+      const existingGameId = await prisma.player.findUnique({
+        where: { gameId }
+      });
+
+      if (existingGameId) {
+        return interaction.reply({
+          content: t(language, "GAMEID_ALREADY_USED"),
           ephemeral: true
         });
       }
@@ -31,16 +58,22 @@ module.exports = {
         data: {
           discordId,
           gameId,
-          username: "Unknown", // kommt später von API
-          level: 1
+          username: "Unknown",
+          level: 1,
+          language
         }
       });
 
-      await interaction.reply('Registrierung erfolgreich.');
+      await interaction.reply({
+        content: t(language, "REGISTER_SUCCESS"),
+        ephemeral: true
+      });
+
     } catch (error) {
       console.error(error);
+
       await interaction.reply({
-        content: 'Fehler bei Registrierung.',
+        content: t(language, "REGISTER_ERROR"),
         ephemeral: true
       });
     }
