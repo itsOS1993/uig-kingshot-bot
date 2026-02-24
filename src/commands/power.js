@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
 const prisma = require('../database/prisma');
-const amount = interaction.options.getInteger('amount');
 const { createEmbed } = require('../utils/embed');
 
 module.exports = {
@@ -8,44 +7,29 @@ module.exports = {
     .setName('power')
     .setDescription('Add power')
     .addIntegerOption(option =>
-        option.setName('amount')
-            .setDescription('Enter full number (example: 10000000)')
-            .setRequired(true)
-        )
+      option.setName('amount')
+        .setDescription('Enter full number (example: 10000000)')
+        .setRequired(true)
+    )
     .addUserOption(option =>
       option.setName('user')
-        .setDescription('Target user (R4 only)')
+        .setDescription('Target user (optional)')
         .setRequired(false)
     ),
 
   async execute(interaction) {
-    const amountInput = interaction.options.getString('amount');
+
+    const amount = interaction.options.getInteger('amount');
     const targetUser = interaction.options.getUser('user') || interaction.user;
 
-    const amount = parsePower(amountInput);
-    if (!amount || amount <= 0) {
+    if (amount <= 0) {
       return interaction.reply({
-        embeds: [createEmbed({ description: "Invalid amount.", color: 0xed4245 })],
+        embeds: [createEmbed({
+          description: "Amount must be greater than 0.",
+          color: 0xed4245
+        })],
         ephemeral: true
       });
-    }
-
-    const guildId = interaction.guild.id;
-
-    const config = await prisma.guildConfig.findUnique({
-      where: { guildId }
-    });
-
-    const isSelf = targetUser.id === interaction.user.id;
-
-    if (!isSelf) {
-      const member = interaction.member;
-      if (!config || !config.r4RoleId || !member.roles.cache.has(config.r4RoleId)) {
-        return interaction.reply({
-          embeds: [createEmbed({ description: "You are not allowed to modify others.", color: 0xed4245 })],
-          ephemeral: true
-        });
-      }
     }
 
     const player = await prisma.player.findUnique({
@@ -54,32 +38,27 @@ module.exports = {
 
     if (!player) {
       return interaction.reply({
-        embeds: [createEmbed({ description: "User not registered.", color: 0xfaa61a })],
+        embeds: [createEmbed({
+          description: "User not registered.",
+          color: 0xfaa61a
+        })],
         ephemeral: true
       });
     }
 
     const updated = await prisma.player.update({
-        where: { discordId: targetUser.id },
-        data: {
-            power: player.power + amount,
-            powerHistory: {
-            create: {
-                guildId: interaction.guild.id,
-                changedBy: interaction.user.id,
-                amount: amount
-            }
-            }
-        }
+      where: { discordId: targetUser.id },
+      data: {
+        power: player.power + amount
+      }
     });
 
-    await interaction.reply({
-      embeds: [
-        createEmbed({
-          description: `Power updated.\nNew Power: ${formatPower(updated.power)}`,
-          color: 0x57f287
-        })
-      ]
+    return interaction.reply({
+      embeds: [createEmbed({
+        description: `New Power: ${updated.power.toLocaleString("en-US")}`,
+        color: 0x57f287
+      })]
     });
+
   }
 };
