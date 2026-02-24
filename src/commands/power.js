@@ -20,6 +20,7 @@ module.exports = {
   async execute(interaction) {
 
     const amount = interaction.options.getInteger('amount');
+    console.log("AMOUNT:", amount);
     const targetUser = interaction.options.getUser('user') || interaction.user;
 
     if (amount <= 0) {
