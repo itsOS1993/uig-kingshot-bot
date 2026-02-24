@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/itsOS1993/uig-kingshot-bot#readme",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.94",
     "@prisma/client": "^5.22.0",
     "axios": "^1.13.5",
     "discord.js": "^14.25.1",
