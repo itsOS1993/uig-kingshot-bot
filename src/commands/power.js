@@ -1,5 +1,3 @@
-
-
 const { SlashCommandBuilder } = require('discord.js');
 const prisma = require('../database/prisma');
 const { createEmbed } = require('../utils/embed');

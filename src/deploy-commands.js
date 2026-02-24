@@ -3,6 +3,10 @@ const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+const isDev = process.env.DEV_MODE === 'true';
+
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -16,31 +20,43 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
-    console.log('Deploying commands...');
+    console.log('=== HARD RESET DEPLOY START ===');
 
-  const isDev = process.env.DEV_MODE === 'true';
+    // 1️⃣ Global Commands löschen
+    console.log('Clearing ALL global commands...');
+    await rest.put(
+      Routes.applicationCommands(clientId),
+      { body: [] },
+    );
 
-if (isDev) {
-  console.log("Deploying guild (DEV) commands...");
+    // 2️⃣ Guild Commands löschen (falls DEV)
+    if (guildId) {
+      console.log('Clearing ALL guild commands...');
+      await rest.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: [] },
+      );
+    }
 
-  await rest.put(
-    Routes.applicationGuildCommands(
-      process.env.CLIENT_ID,
-      process.env.GUILD_ID
-    ),
-    { body: commands },
-  );
+    // 3️⃣ Neue Commands registrieren
+    console.log('Registering fresh commands...');
 
-} else {
-  console.log("Deploying global (PROD) commands...");
+    if (isDev && guildId) {
+      console.log('Deploying in DEV (Guild) mode...');
+      await rest.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: commands },
+      );
+    } else {
+      console.log('Deploying in PROD (Global) mode...');
+      await rest.put(
+        Routes.applicationCommands(clientId),
+        { body: commands },
+      );
+    }
 
-  await rest.put(
-    Routes.applicationCommands(process.env.CLIENT_ID),
-    { body: commands },
-  );
-}
+    console.log('=== COMMANDS FULLY RESET & DEPLOYED ===');
 
-    console.log('Successfully deployed commands.');
   } catch (error) {
     console.error(error);
   }
