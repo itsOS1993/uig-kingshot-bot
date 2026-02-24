@@ -11,11 +11,14 @@ async function fetchPlayer(gameId) {
       timeout: 5000
     });
 
-    const data = response.data;
+    console.log("STATUS:", response.status);
+    console.log("RAW DATA:", response.data);
 
-    if (!data || !data.name) {
+    if (response.data.status !== "success") {
       return null;
     }
+
+    const data = response.data.data;
 
     return {
       username: data.name,
