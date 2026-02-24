@@ -18,10 +18,27 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
   try {
     console.log('Deploying commands...');
 
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands },
-    );
+  const isDev = process.env.DEV_MODE === 'true';
+
+if (isDev) {
+  console.log("Deploying guild (DEV) commands...");
+
+  await rest.put(
+    Routes.applicationGuildCommands(
+      process.env.CLIENT_ID,
+      process.env.GUILD_ID
+    ),
+    { body: commands },
+  );
+
+} else {
+  console.log("Deploying global (PROD) commands...");
+
+  await rest.put(
+    Routes.applicationCommands(process.env.CLIENT_ID),
+    { body: commands },
+  );
+}
 
     console.log('Successfully deployed commands.');
   } catch (error) {
