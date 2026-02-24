@@ -11,11 +11,11 @@ async function fetchPlayer(gameId) {
       timeout: 5000
     });
 
-    if (response.data.status !== "success") {
+    const data = response.data;
+
+    if (!data || !data.name) {
       return null;
     }
-
-    const data = response.data.data;
 
     return {
       username: data.name,
@@ -25,6 +25,7 @@ async function fetchPlayer(gameId) {
     };
 
   } catch (error) {
+    console.error("API ERROR:", error.message);
     return null;
   }
 }
